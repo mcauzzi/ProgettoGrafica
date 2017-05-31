@@ -1026,10 +1026,10 @@ void draw(GLFWwindow* window)
 	glUniform3fv(glGetUniformLocation(finishProgram, "light_direction"), 1, &light_direction[0]);
 	glUniform3fv(glGetUniformLocation(finishProgram, "light_intensity"), 1, &light_intensity[0]);
 	glUniform3fv(glGetUniformLocation(finishProgram, "view_position"), 1, &camera_position[0]);
-	glUniform1f(glGetUniformLocation(finishProgram, "shininess"), material[3].shininess);
-	glUniform3fv(glGetUniformLocation(finishProgram, "material_ambient"), 1, material[3].ambient);
-	glUniform3fv(glGetUniformLocation(finishProgram, "material_diffuse"), 1, material[3].diffuse);
-	glUniform3fv(glGetUniformLocation(finishProgram, "material_specular"), 1, material[3].specular);
+	glUniform1f(glGetUniformLocation(finishProgram, "shininess"), material[2].shininess);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_ambient"), 1, material[1].ambient);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_diffuse"), 1, material[1].diffuse);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_specular"), 1, material[1].specular);
 	glUniform1f(glGetUniformLocation(finishProgram, "Time"), t);
 	glBindVertexArray(vao[3]);
 	glDrawElements(GL_TRIANGLES, element_count[3], GL_UNSIGNED_INT, 0);
@@ -1129,6 +1129,5 @@ int main(int argc, char const *argv[])
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
-	getchar();
 	return EXIT_SUCCESS;
 }

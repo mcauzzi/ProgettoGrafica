@@ -273,11 +273,10 @@ const GLchar* finishFragmentSource =
 "	vec3 R = normalize(reflect(-light_direction, Normal));"
 "	vec3 R2 = normalize(reflect(-light_direction2, Normal));"
 "	outColor = vec4(material_ambient,1);"
-"	outColor += vec4(light_intensity*material_diffuse,1) * texture(textureSampler, Coord) * max(dot(light_direction, Normal), 0.0);"
+"	outColor += vec4(light_intensity*material_diffuse*vec3(sin(10*Time)/2+0.5f, cos(10*Time+3.14/2)/2+0.5f, cos(10*Time)/2+0.5f),1) * texture(textureSampler, Coord) * max(dot(light_direction, Normal), 0.0);"
 "	outColor +=  vec4(light_intensity*material_specular,1) * pow(max(dot(R, view_direction), 0.0), shininess);"
-"	outColor +=  vec4(light_intensity*material_diffuse,1)  * texture(textureSampler, Coord)* max(dot(light_direction2, Normal), 0.0);"
+"	outColor +=  vec4(light_intensity*material_diffuse*vec3(sin(10*Time)/2+0.5f, cos(10*Time+3.14/2)/2+0.5f, cos(10*Time)/2+0.5f),1)  * texture(textureSampler, Coord)* max(dot(light_direction2, Normal), 0.0);"
 "	outColor +=  vec4(light_intensity*material_specular,1) * pow(max(dot(R2, view_direction), 0.0), shininess);"
-"	outColor *= vec4(sin(Time)/3+0.4f,1.f,cos(Time)/3+0.4f,1.f);"
 "}";
 
 #endif
