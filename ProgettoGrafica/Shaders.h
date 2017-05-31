@@ -27,7 +27,6 @@ const GLchar* vertexShipSource =
 "	Position = vec3(vertPos)/vertPos.w;"
 "}";
 
-
 const GLchar* fragmentShipSource =
 #if defined(__APPLE_CC__)
 "#version 150 core\n"
@@ -59,7 +58,6 @@ const GLchar* fragmentShipSource =
 "	outColor +=  vec4(light_intensity*material_diffuse,1)  * max(dot(light_direction2, Normal), 0.0);"
 "	outColor +=  vec4(light_intensity*material_specular,1) * pow(max(dot(R2, view_direction), 0.0), shininess);"
 "}";
-
 
 const GLchar* vertexSource =
 #if defined(__APPLE_CC__)
@@ -143,7 +141,6 @@ const GLchar* fragmentSource2 =
 "	outColor +=  vec4(light_intensity*material_diffuse,1)  * max(dot(light_direction2, normalize(Normal)), 0.0);"
 "}";
 
-
 // le posizioni passate formano gia' un cubo compreso tra [-1,-1,-1] e [1,1,1], l'intervallo cioe' del clip-space
 // non dobbiamo quindi applicare nessuna trasformazione
 // moltiplicando i vertici per l'inversa della view_matrix otteniamo un versore che punta lungo proiezione sferica del cubo, ed e' esattamente
@@ -175,7 +172,6 @@ const GLchar* fragmentSkySource =
 "	outColor =  texture(textureSampler, Coord);"
 "}";
 
-
 // visto che passiamo un quadrato con le coordinate gia' all'interno dell'intervallo -1,1 (clip-space) non dobbiamo applicare nessuna trasformazione
 const GLchar* vertexGuiSource =
 #if defined(__APPLE_CC__)
@@ -206,5 +202,25 @@ const GLchar* fragmentGuiSource =
 "outColor =  texture(textureSampler, Coord);"
 "}";
 
+
+const GLchar* groundVertexSource =
+#if defined(__APPLE_CC__)
+"#version 150 core\n"
+#else
+"#version 130\n"
+#endif
+"in vec3 position;"
+"in vec3 color;"
+"in vec2 coord;"
+"out vec3 Color;"
+"out vec2 Coord;"
+"uniform mat4 model;"
+"uniform mat4 view;"
+"uniform mat4 projection;"
+"void main() {"
+"   Color = color;"
+"   Coord = coord;"
+"   gl_Position = projection * view * model * vec4(position, 1.0);"
+"}";
 
 #endif
