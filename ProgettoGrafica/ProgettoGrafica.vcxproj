@@ -132,14 +132,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Desktop\lab6\e08.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\..\..\..\Desktop\lab6\glew32.dll" />
     <None Include="..\..\..\..\..\Desktop\lab6\Makefile" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shaders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="e08.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
