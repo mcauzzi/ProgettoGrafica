@@ -34,6 +34,7 @@ using timer = std::chrono::high_resolution_clock;
 #pragma comment(lib,"opengl32")
 #pragma comment(lib,"glew32")
 #pragma comment(lib,"glfw3")
+#pragma comment(lib, "shell32")
 #endif
 
 
@@ -228,7 +229,7 @@ GLuint ibo[7];
 tinyobj::material_t material[4];
 GLsizei element_count[4];
 
-GLuint shaderProgram, shaderProgram2, shipProgram, groundProgram;
+GLuint shaderProgram, shaderProgram2, shipProgram, groundProgram, finishProgram;
 GLuint skyProgram, guiProgram;
 GLuint texture[3]; // 0 cubic.png
 GLuint textureCube;
@@ -477,6 +478,47 @@ void initialize_shader()
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &finishVertexSource, NULL);
+	glCompileShader(vertexShader);
+	{
+		GLchar log[512];
+		GLsizei slen = 0;
+		glGetShaderInfoLog(vertexShader, 512, &slen, log);
+		if (slen)
+			std::cerr << log << std::endl;
+	}
+
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &finishFragmentSource, NULL);
+	glCompileShader(fragmentShader);
+	{
+		GLchar log[512];
+		GLsizei slen = 0;
+		glGetShaderInfoLog(fragmentShader, 512, &slen, log);
+		if (slen)
+			std::cerr << log << std::endl;
+	}
+
+	finishProgram = glCreateProgram();
+	glAttachShader(finishProgram, vertexShader);
+	glAttachShader(finishProgram, fragmentShader);
+	glBindFragDataLocation(finishProgram, 0, "outColor");
+	glLinkProgram(finishProgram);
+	status = 0;
+	glGetProgramiv(finishProgram, GL_LINK_STATUS, &status);
+	if (!status)
+	{
+		std::cout << "failed to link" << std::endl;
+		GLchar log[256];
+		GLsizei slen = 0;
+		glGetProgramInfoLog(finishProgram, 256, &slen, log);
+		std::cout << log << std::endl;
+	}
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 }
 
 void destroy_shader()
@@ -595,61 +637,55 @@ void initialize_vao()
 	//importazione oggetto nuovo traguardo
 	initialize_vao_from_file(3, "assets/finish/finish.obj", "assets/finish/"); check(__LINE__);
 
-
 	// skybox vao setup
-	glBindVertexArray(vao[4]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindVertexArray(vao[4]); check(__LINE__);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]); check(__LINE__);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); check(__LINE__);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[4]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[4]); check(__LINE__);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW); check(__LINE__);
 
 	// shaderProgram must be already initialized
-	GLint posAttrib = glGetAttribLocation(skyProgram, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	GLint posAttrib = glGetAttribLocation(skyProgram, "position"); check(__LINE__);
+	glEnableVertexAttribArray(posAttrib); check(__LINE__);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0); check(__LINE__);
 
 	// gui vao setup
-	glBindVertexArray(vao[5]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(guiVertices), guiVertices, GL_STATIC_DRAW);
+	glBindVertexArray(vao[5]); check(__LINE__);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[5]); check(__LINE__);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(guiVertices), guiVertices, GL_STATIC_DRAW); check(__LINE__);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[5]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(guiElements), guiElements, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[5]); check(__LINE__);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(guiElements), guiElements, GL_STATIC_DRAW); check(__LINE__);
 
 	// shaderProgram must be already initialized
-	posAttrib = glGetAttribLocation(guiProgram, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	GLint cooAttrib = glGetAttribLocation(guiProgram, "coord");
-	glEnableVertexAttribArray(cooAttrib);
-	glVertexAttribPointer(cooAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)GLintptr(2 * sizeof(GLfloat)));
+	posAttrib = glGetAttribLocation(guiProgram, "position"); check(__LINE__);
+	glEnableVertexAttribArray(posAttrib); check(__LINE__);
+	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0); check(__LINE__);
+	GLint cooAttrib = glGetAttribLocation(guiProgram, "coord"); check(__LINE__);
+	glEnableVertexAttribArray(cooAttrib); check(__LINE__);
+	glVertexAttribPointer(cooAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)GLintptr(2 * sizeof(GLfloat))); check(__LINE__);
 
 
 	//vao per ground
-	glBindVertexArray(vao[6]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertices), groundVertices, GL_STATIC_DRAW);
+	glBindVertexArray(vao[6]); check(__LINE__);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[6]); check(__LINE__);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertices), groundVertices, GL_STATIC_DRAW); check(__LINE__);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[6]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundElements), groundElements, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo[6]); check(__LINE__);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundElements), groundElements, GL_STATIC_DRAW); check(__LINE__);
 
-	posAttrib = glGetAttribLocation(groundProgram, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
+	posAttrib = glGetAttribLocation(groundProgram, "position"); check(__LINE__);
+	glEnableVertexAttribArray(posAttrib); check(__LINE__);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0); check(__LINE__);
 
-	GLint colAttrib = glGetAttribLocation(groundProgram, "color");
-	glEnableVertexAttribArray(colAttrib);
+	GLint colAttrib = glGetAttribLocation(groundProgram, "color"); check(__LINE__);
+	glEnableVertexAttribArray(colAttrib); check(__LINE__);
 	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
-	cooAttrib = glGetAttribLocation(groundProgram, "coord");
-	glEnableVertexAttribArray(cooAttrib);
-	glVertexAttribPointer(cooAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-
-
-
-
-
+	cooAttrib = glGetAttribLocation(groundProgram, "coord"); check(__LINE__);
+	glEnableVertexAttribArray(cooAttrib); check(__LINE__); check(__LINE__);
+	glVertexAttribPointer(cooAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat))); check(__LINE__);
 }
 
 void destroy_vao()
@@ -978,22 +1014,23 @@ void draw(GLFWwindow* window)
 	//disegno il traguardo
 	planetPosition[3] = glm::vec3(2.0f, 3.0f, -10.0f);  //modifica 2
 	planetSize[3] = 1.f;
-	glUseProgram(shaderProgram2);
+	glUseProgram(finishProgram);
 	model = glm::mat4(1.f);
 	model = glm::translate(model, glm::vec3(2.0f, 3.0f, -10.0f));
 
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram2, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram2, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram2, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram2, "normal_matrix"), 1, GL_FALSE, &normal_matrix[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram2, "inv_proj"), 1, GL_FALSE, &inv_proj[0][0]);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "light_direction"), 1, &light_direction[0]);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "light_intensity"), 1, &light_intensity[0]);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "view_position"), 1, &camera_position[0]);
-	glUniform1f(glGetUniformLocation(shaderProgram2, "shininess"), material[3].shininess);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "material_ambient"), 1, material[3].ambient);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "material_diffuse"), 1, material[3].diffuse);
-	glUniform3fv(glGetUniformLocation(shaderProgram2, "material_specular"), 1, material[3].specular);
+	glUniformMatrix4fv(glGetUniformLocation(finishProgram, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(finishProgram, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(finishProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(finishProgram, "normal_matrix"), 1, GL_FALSE, &normal_matrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(finishProgram, "inv_proj"), 1, GL_FALSE, &inv_proj[0][0]);
+	glUniform3fv(glGetUniformLocation(finishProgram, "light_direction"), 1, &light_direction[0]);
+	glUniform3fv(glGetUniformLocation(finishProgram, "light_intensity"), 1, &light_intensity[0]);
+	glUniform3fv(glGetUniformLocation(finishProgram, "view_position"), 1, &camera_position[0]);
+	glUniform1f(glGetUniformLocation(finishProgram, "shininess"), material[3].shininess);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_ambient"), 1, material[3].ambient);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_diffuse"), 1, material[3].diffuse);
+	glUniform3fv(glGetUniformLocation(finishProgram, "material_specular"), 1, material[3].specular);
+	glUniform1f(glGetUniformLocation(finishProgram, "Time"), t);
 	glBindVertexArray(vao[3]);
 	glDrawElements(GL_TRIANGLES, element_count[3], GL_UNSIGNED_INT, 0);
 
@@ -1092,5 +1129,6 @@ int main(int argc, char const *argv[])
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
+	getchar();
 	return EXIT_SUCCESS;
 }

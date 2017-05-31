@@ -135,7 +135,6 @@ const GLchar* fragmentSource2 =
 "uniform vec3 light_position;"
 
 "void main() {"
-
 "	vec3 light_direction2 = normalize(light_position - Position);"
 "	outColor = vec4(light_intensity*material_diffuse,1) *max(dot(light_direction, normalize(Normal)), 0.0);"
 "	outColor +=  vec4(light_intensity*material_diffuse,1)  * max(dot(light_direction2, normalize(Normal)), 0.0);"
@@ -221,6 +220,64 @@ const GLchar* groundVertexSource =
 "   Color = color;"
 "   Coord = coord;"
 "   gl_Position = projection * view * model * vec4(position, 1.0);"
+"}";
+
+const GLchar* finishVertexSource =
+#if defined(__APPLE_CC__)
+"#version 150 core\n"
+#else
+"#version 130\n"
+#endif
+"in vec3 position;"
+"in vec3 normal;"
+"in vec2 coord;"
+"out vec3 Position;"
+"out vec3 Normal;"
+"out vec2 Coord;"
+"uniform mat4 model;"
+"uniform mat4 normal_matrix;"
+"uniform mat4 view;"
+"uniform mat4 projection;"
+"void main() {"
+"	Normal = vec3(normal_matrix * vec4(normal,0.0));"
+"	Coord = vec2(coord.x, 1.0-coord.y);"
+"	gl_Position = projection * view * model * vec4(position, 1.0);"
+"	vec4 vertPos = model * vec4(position, 1.0);"
+"	Position = vec3(vertPos)/vertPos.w;"
+"}";
+
+const GLchar* finishFragmentSource =
+#if defined(__APPLE_CC__)
+"#version 150 core\n"
+#else
+"#version 130\n"
+#endif
+"in vec3 Position;"
+"in vec3 Normal;"
+"in vec2 Coord;"
+"uniform float Time;"
+"out vec4 outColor;"
+"uniform mat4 normal_matrix;"
+"uniform float shininess;"
+"uniform vec3 material_ambient;"
+"uniform vec3 material_diffuse;"
+"uniform vec3 material_specular;"
+"uniform vec3 light_direction;"
+"uniform vec3 light_intensity;"
+"uniform vec3 view_position;"
+"uniform vec3 light_position;"
+"uniform sampler2D textureSampler;"
+"void main() {"
+"	vec3 view_direction = normalize(view_position - Position);"
+"	vec3 light_direction2 = normalize(light_position - Position);"
+"	vec3 R = normalize(reflect(-light_direction, Normal));"
+"	vec3 R2 = normalize(reflect(-light_direction2, Normal));"
+"	outColor = vec4(material_ambient,1);"
+"	outColor += vec4(light_intensity*material_diffuse,1) * texture(textureSampler, Coord) * max(dot(light_direction, Normal), 0.0);"
+"	outColor +=  vec4(light_intensity*material_specular,1) * pow(max(dot(R, view_direction), 0.0), shininess);"
+"	outColor +=  vec4(light_intensity*material_diffuse,1)  * texture(textureSampler, Coord)* max(dot(light_direction2, Normal), 0.0);"
+"	outColor +=  vec4(light_intensity*material_specular,1) * pow(max(dot(R2, view_direction), 0.0), shininess);"
+"	outColor *= vec4(sin(Time)/3+0.4f,1.f,cos(Time)/3+0.4f,1.f);"
 "}";
 
 #endif
